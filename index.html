@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Coach</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef3f8;
+      color: #202b3c;
+      padding: 15px;
+      margin: 0;
+    }
+
+    .app {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 3px 12px #0002;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      margin: 7px 0;
+      border: none;
+      border-radius: 9px;
+      background: #2864dc;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:active {
+      background: #1747a5;
+    }
+
+    .secondary {
+      background: #65758b;
+    }
+
+    .lessonBox {
+      background: #edf4ff;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 12px 0;
+    }
+
+    code {
+      background: #e1e8f0;
+      padding: 3px;
+      border-radius: 4px;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 7px 0;
+      font-size: 16px;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+    }
+
+    .feedback {
+      min-height: 22px;
+      font-weight: bold;
+    }
+
+    .hint {
+      color: #52657d;
+      min-height: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div id="welcome">
+    <h1>🤖 Code Coach</h1>
+    <p>Learn Java one step at a time!</p>
+    <p>Choose where you want to start:</p>
+
+    <button onclick="startCourse('beginner')">
+      Beginner Java
+    </button>
+
+    <button onclick="startCourse('some')">
+      I Know Some Java
+    </button>
+
+    <button onclick="startCourse('ftc')">
+      FTC Robotics
+    </button>
+  </div>
+
+
+  <div id="lessonScreen" style="display:none;">
+
+    <h2 id="lessonTitle"></h2>
+
+    <div class="lessonBox">
+      <p id="lessonExplanation"></p>
+      <p><strong>Example:</strong></p>
+      <pre id="lessonExample"></pre>
+    </div>
+
+    <h3>Practice Problem 1</h3>
+    <p id="question1"></p>
+    <input id="answer1" placeholder="Type your answer">
+    <button onclick="checkAnswer(1)">Check Answer</button>
+    <button class="secondary" onclick="showHint(1)">Hint</button>
+    <p id="hint1" class="hint"></p>
+    <p id="feedback1" class="feedback"></p>
+
+    <hr>
+
+    <h3>Practice Problem 2</h3>
+    <p id="question2"></p>
+    <input id="answer2" placeholder="Type your answer">
+    <button onclick="checkAnswer(2)">Check Answer</button>
+    <button class="secondary" onclick="showHint(2)">Hint</button>
+    <p id="hint2" class="hint"></p>
+    <p id="feedback2" class="feedback"></p>
+
+    <button id="nextButton" onclick="nextLesson()" style="display:none;">
+      Next Lesson →
+    </button>
+
+    <button class="secondary" onclick="goHome()">
+      Back to Home
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+  var currentCourse = "beginner";
+  var currentLesson = 0;
+  var correct1 = false;
+  var correct2 = false;
+
+  var lessons = [
+    {
+      title: "Lesson 1: Printing Text",
+      explanation:
+        "Java can display messages using System.out.println(). The text goes inside quotation marks.",
+      example:
+        'System.out.println("Robot starting!");',
+      q1: 'What code prints "Hello Robot!"?',
+      a1: 'System.out.println("Hello Robot!");',
+      h1: 'Use System.out.println, then put the message inside quotation marks.',
+      q2: 'What code prints "Systems Ready!"?',
+      a2: 'System.out.println("Systems Ready!");',
+      h2: 'Remember the capital S and R, and the semicolon at the end.'
+    },
+    {
+      title: "Lesson 2: Variables",
+      explanation:
+        "A variable stores information. An int stores a whole number. You can give a variable a name and a value.",
+      example:
+        "int robotSpeed = 5;",
+      q1: "Write a variable named motorPower with a value of 10.",
+      a1: "int motorPower = 10;",
+      h1: "Start with int, then the variable name, =, the number, and ;",
+      q2: "Write a variable named robotAge with a value of 2.",
+      a2: "int robotAge = 2;",
+      h2: "Use the same pattern as the example, but change the name and number."
+    },
+    {
+      title: "Lesson 3: Changing Variables",
+      explanation:
+        "You can change a variable's value by assigning it a new value.",
+      example:
+        "int speed = 5;\nspeed = 8;",
+      q1: "If speed is 5, what code changes it to 10?",
+      a1: "speed = 10;",
+      h1: "You do not need to write int again. Just use the variable name.",
+      q2: "If power is 3, what code changes it to 7?",
+      a2: "power = 7;",
+      h2: "Use the variable name, an equals sign, the new number, and a semicolon."
+    },
+    {
+      title: "Lesson 4: Math in Java",
+      explanation:
+        "Java can do math. Use + for addition, - for subtraction, * for multiplication, and / for division.",
+      example:
+        "int result = 10 + 4;",
+      q1: "What is the result of 8 + 3?",
+      a1: "11",
+      h1: "Add 8 and 3.",
+      q2: "What is the result of 12 - 5?",
+      a2: "7",
+      h2: "Start at 12 and subtract 5."
+    }
+  ];
+
+  function startCourse(course) {
+    currentCourse = course;
+    currentLesson = 0;
+
+    document.getElementById("welcome").style.display = "none";
+    document.getElementById("lessonScreen").style.display = "block";
+
+    showLesson();
+  }
+
+  function showLesson() {
+    var lesson = lessons[currentLesson];
+
+    correct1 = false;
+    correct2 = false;
+
+    document.getElementById("lessonTitle").innerText = lesson.title;
+    document.getElementById("lessonExplanation").innerText = lesson.explanation;
+    document.getElementById("lessonExample").innerText = lesson.example;
+
+    document.getElementById("question1").innerText = lesson.q1;
+    document.getElementById("question2").innerText = lesson.q2;
+
+    document.getElementById("answer1").value = "";
+    document.getElementById("answer2").value = "";
+
+    document.getElementById("hint1").innerText = "";
+    document.getElementById("hint2").innerText = "";
+
+    document.getElementById("feedback1").innerText = "";
+    document.getElementById("feedback2").innerText = "";
+
+    document.getElementById("nextButton").style.display = "none";
+  }
+
+  function cleanAnswer(answer) {
+    return answer
+      .replace(/\s+/g, "")
+      .toLowerCase();
+  }
+
+  function checkAnswer(number) {
+    var lesson = lessons[currentLesson];
+    var input = document.getElementById("answer" + number);
+    var feedback = document.getElementById("feedback" + number);
+
+    var userAnswer = cleanAnswer(input.value);
+    var correctAnswer = cleanAnswer(
+      number === 1 ? lesson.a1 : lesson.a2
+    );
+
+    if (userAnswer === correctAnswer) {
+      feedback.innerText = "Correct! Great job! 🎉";
+      feedback.style.color = "green";
+
+      if (number === 1) {
+        correct1 = true;
+      } else {
+        correct2 = true;
+      }
+    } else {
+      feedback.innerText = "Not quite. Try again!";
+      feedback.style.color = "red";
+    }
+
+    if (correct1 && correct2) {
+      document.getElementById("nextButton").style.display = "block";
+    }
+  }
+
+  function showHint(number) {
+    var lesson = lessons[currentLesson];
+
+    document.getElementById("hint" + number).innerText =
+      number === 1 ? lesson.h1 : lesson.h2;
+  }
+
+  function nextLesson() {
+    if (currentLesson < lessons.length - 1) {
+      currentLesson++;
+      showLesson();
+    } else {
+      document.getElementById("lessonTitle").innerText =
+        "You finished these lessons! 🎉";
+
+      document.getElementById("lessonExplanation").innerText =
+        "Great work! You completed this set of beginner Java lessons.";
+
+      document.getElementById("lessonExample").innerText = "";
+
+      document.getElementById("question1").innerText =
+        "You can go back home to choose a course.";
+
+      document.getElementById("question2").innerText = "";
+
+      document.getElementById("answer1").style.display = "none";
+      document.getElementById("answer2").style.display = "none";
+
+      document.getElementById("nextButton").style.display = "none";
+    }
+  }
+
+  function goHome() {
+    document.getElementById("lessonScreen").style.display = "none";
+    document.getElementById("welcome").style.display = "block";
+
+    document.getElementById("answer1").style.display = "block";
+    document.getElementById("answer2").style.display = "block";
+  }
+</script>
+
+</body>
+</html>
